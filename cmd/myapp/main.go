@@ -1,41 +1,30 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"log"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+
 	"github.com/srjchsv/auth-service/internal/app/handlers"
-	"github.com/srjchsv/auth-service/internal/app/models"
+	"github.com/srjchsv/auth-service/internal/pkg/appmetrics"
+	"github.com/srjchsv/auth-service/internal/pkg/database"
 )
 
 func main() {
-
-	dbUser := os.Getenv("POSTGRES_USER")
-	dbName := os.Getenv("POSTGRES_DB")
-	dbPassword := os.Getenv("POSTGRES_PASSWORD")
-	dbPort := os.Getenv("POSTGRES_PORT")
-	dbHost := os.Getenv("POSTGRES_HOST")
-
-	dbURI := fmt.Sprintf("host=%v port=%s user=%s dbname=%s password=%s sslmode=disable", dbHost,
-		dbPort, dbUser, dbName, dbPassword)
-
-	db, err := gorm.Open("postgres", dbURI)
+	db, err := database.InitDB()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	defer db.Close()
-
-	db.AutoMigrate(&models.User{})
-
 	r := gin.Default()
 	// Enable CORS
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
 	r.Use(cors.New(config))
+
+	// Init metrics
+	appmetrics.InitPrometheus(r)
 
 	r.POST("/register", handlers.Register(db))
 	r.POST("/login", handlers.Login(db))
