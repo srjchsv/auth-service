@@ -1,13 +1,5 @@
 version: '3.9'
 services:
-  myapp:
-    build: .
-    env_file:
-      - .env
-    ports:
-      - ${PORT}:${PORT}
-    depends_on:
-      - db
   db:
     image: postgres:15.2-alpine
     container_name: auth-db
