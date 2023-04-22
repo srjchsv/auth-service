@@ -25,9 +25,9 @@ func main() {
 
 	// Init metrics
 	appmetrics.InitPrometheus(r)
-
-	r.POST("/register", handlers.Register(db))
-	r.POST("/login", handlers.Login(db))
+	auth := r.Group("/auth")
+	auth.POST("/register", handlers.Register(db))
+	auth.POST("/login", handlers.Login(db))
 
 	users := r.Group("/")
 	users.Use(handlers.AuthMiddleware())
